@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Channels;
 using System.Collections.Generic;
 using System.Collections;
+using System.Diagnostics;
 namespace OOP_in_Csharp
 {
     public class Computer
@@ -32,7 +33,7 @@ namespace OOP_in_Csharp
             _counter++;
         }
 
-        public Computer() 
+        public Computer()
         {
             _switchedOn = false;
             _counter++;
@@ -44,7 +45,7 @@ namespace OOP_in_Csharp
         {
             return _counter;
         }
-        
+
         //--------------------------------
         //Properties
         public string BiosName
@@ -75,16 +76,16 @@ namespace OOP_in_Csharp
         }
 
 
-        public static void StartComputer(List<Computer> network, string ip, string compName) 
+        public static void StartComputer(List<Computer> network, string ip, string compName)
         {
-            for(int i = 0; i < network.Count; i++)
+            for (int i = 0; i < network.Count; i++)
             {
                 if (network[i]._BIOSname == compName)
                 {
                     network[i].ON = true;
                     network[i].IPAddress = ip;
                 }
-            }       
+            }
         }
 
         public static void ShutDownComp(List<Computer> network, string compName)
@@ -101,7 +102,7 @@ namespace OOP_in_Csharp
 
         public static void ShowComp(List<Computer> network)
         {
-            for(int i = 0;i < network.Count;i++)
+            for (int i = 0; i < network.Count; i++)
             {
                 Console.WriteLine("{0} {1}", network[i].BiosName, network[i].IPAddress);
             }
@@ -110,9 +111,9 @@ namespace OOP_in_Csharp
         public static int getCompsOn(List<Computer> network)
         {
             int countON = 0;
-            foreach(Computer c in network)
+            foreach (Computer c in network)
             {
-                if(c.ON) countON++;
+                if (c.ON) countON++;
             }
             return countON;
         }
@@ -122,55 +123,77 @@ namespace OOP_in_Csharp
             int count = 0;
             string piece = "";
 
-            while (count < N) 
+            while (count < N)
             {
                 piece = "10.0." + getNum() + "." + getNum();
-                
-                if(ips.Contains(piece) == false)
+
+                if (ips.Contains(piece) == false)
                 {
                     ips.Add(piece);
                     count++;
                 }
-            }return ips;
+            }
+            return ips;
         }
 
+        public static void Ping(List<Computer> network, string ip)
+        {
+            Stopwatch time = new Stopwatch();
+            time.Start();
+            string pingIP = ip;
+            StreamWriter loginfile = File.AppendText("logfile.txt");
+            string total_time = "";
 
 
+            for (int i = 0; i < network.Count; i++)
+            {
+                Console.WriteLine("Time=" + getNum() + "ms");
+                if (pingIP == network[i].IPAddress)
+                {
+                    loginfile.WriteLine("The ping was done succesfully");
+                    Console.WriteLine("The ping was done succesfully");
+                    loginfile.Close();
+                    return;
+                }
+            }
+            loginfile.WriteLine("It was not possible to ping this IP");
 
-
-
-
-
-
+            Console.WriteLine("It was not possible to ping this IP");
+           // loginfile.Close();
+            time.Stop();
+            total_time = time.Elapsed.TotalMilliseconds.ToString();
+            loginfile.WriteLine(total_time);
+            loginfile.Close();
+        }
     }
 
-  
+
     class Program
     {
         public static void Main(string[] args)
         {
             //Creamos una lista donde se almacenarán los ordenadores
-            List <Computer> net = new List <Computer> ();
+            List<Computer> net = new List<Computer>();
             const int allComps = 10;
             int onComps = 5;
 
 
             //Creamos una lista de direcciones IP
             Console.WriteLine("\nAvailable IP addresses:");
-            List<string> ipaddresses = new List<string> ();
+            List<string> ipaddresses = new List<string>();
             ipaddresses = Computer.getAdresses(ipaddresses, allComps);
 
             //Declaramos una pila llamada ipsa donde se almacenarán las direcciones ip
             Stack ipsa = new Stack();
-            foreach(string e in ipaddresses) 
+            foreach (string e in ipaddresses)
             {
                 ipsa.Push(e);
-             //   Console.WriteLine(e);        
+                //   Console.WriteLine(e);        
             }
 
             //Generamos instancias de la clase Computer
             Console.WriteLine("\nGenerating Computer instances");
-            for(int i = 0; i < onComps; i++)
+            for (int i = 0; i < onComps; i++)
             {
                 Computer comp = new Computer("comp" + i.ToString(), "Win10");
                 net.Add(comp);
@@ -182,16 +205,37 @@ namespace OOP_in_Csharp
             Console.WriteLine("We have " + Computer.getCounter() + " computers in our network");
 
             Console.WriteLine("\nTurning off computer");
-            Computer.ShutDownComp(net, "comp2");
+            Computer.ShutDownComp(net, "comp1");
             Computer.ShowComp(net);
-            Console.WriteLine("We have " + Computer.getCounter() + " computers in our network and " + Computer.getCompsOn + " on");
+            Console.WriteLine("We have " + Computer.getCounter() + " computers in our network and " + Computer.getCompsOn(net) + " on");
 
             Console.WriteLine("\nTurning on computer");
             Computer.StartComputer(net, (string)ipsa.Pop(), "comp1");
             Computer.ShowComp(net);
-            Console.WriteLine("We have " + Computer.getCounter() + " computers in our network and " + Computer.getCompsOn + " on");
+            Console.WriteLine("We have " + Computer.getCounter() + " computers in our network and " + Computer.getCompsOn(net) + " on");
 
-            Console.ReadLine();
+
+
+
+
+            //Hacemos PING a una direccion IP
+            Console.WriteLine("Write the IP you want to do the ping: ");
+            string pingIP = Console.ReadLine();
+
+            
+            Computer.Ping(net, pingIP);
+
+
+            /*
+            StreamWriter loginfile = File.AppendText("logfile.txt");
+            loginfile.WriteLine()
+
+             */
+
+
+
+
+
 
 
             /*
